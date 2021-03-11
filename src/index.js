@@ -11,18 +11,70 @@ const users = [];
 
 function checksExistsUserAccount(request, response, next) {
   // Complete aqui
+  const { username } = request.headers;
+  
+  const verifyUserExist = users.find(user => user.username === username);
+
+  if(!verifyUserExist) {
+    return response.status(404).json({ error: 'User not found' });
+  }
+
+  request.user = verifyUserExist;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
   // Complete aqui
+  const { user } = request;
+
+  if((user.pro === false && user.todos.length < 10) || user.pro === true) {
+    return next();
+  }
+
+  return response.status(403).json({ error: 'Expired Plan' });
 }
 
 function checksTodoExists(request, response, next) {
   // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const verifyUserExist = users.find(user => user.username === username);
+
+  if(!verifyUserExist) {
+    return response.status(404).json({ error: 'User not found' });
+  }
+  
+  if(!validate(id)) {
+    return response.status(400).json({ error: 'Id todo not validate' });
+  }
+
+  const verifyTodoExistInUser = verifyUserExist.todos.find(todo => todo.id === id);
+
+  if(!verifyTodoExistInUser) {
+    return response.status(404).json({ error: 'Todo not belong the user' });
+  }
+
+  request.user = verifyUserExist;
+  request.todo = verifyTodoExistInUser;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
   // Complete aqui
+  const { id } = request.params;
+  
+  const verifyUserExist = users.find(user => user.id === id);
+
+  if(!verifyUserExist) {
+    return response.status(404).json({ error: 'User not found' });
+  }
+
+  request.user = verifyUserExist;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
